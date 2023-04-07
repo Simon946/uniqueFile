@@ -6,6 +6,7 @@
 #include <vector>
 #include <iomanip>
 #include <fstream>
+#include <iostream>
 
 namespace SHA1{
     const size_t BLOCK_INTS = 16;  // number of 32bit integers per SHA1 block
@@ -76,7 +77,8 @@ namespace SHA1{
         }
         if(stream.fail()){
             std::cout << "stream failed before starting" << std::endl;
-        }
+            return;
+        }       
 
         uint32_t* block = new uint32_t[BLOCK_INTS];
         uint64_t streamSize = 0;
@@ -94,20 +96,21 @@ namespace SHA1{
                 bytes[bytesRead] = 0x80;//append 1 bit to mark end of data
                 bytesRead++;
 
-                for(int i = bytesRead; i < BLOCK_INTS; i++){
-                    block[i] = 0;//write padding
+                for(int i = bytesRead; i < BLOCK_BYTES; i++){
+                    bytes[i] = 0;//write padding
                 }
                 for(int i = 0; i < BLOCK_INTS; i++){
                     block[i] = reverseEndian(block[i]);
-                }
-                hashBlock(block);
-        
+                } 
                 if(bytesRead < BLOCK_BYTES - 2){
                     streamSize *= 8; //to get number of bits in data
                     block[BLOCK_INTS -1] = (uint32_t)streamSize;
                     block[BLOCK_INTS -2] = (uint64_t)(streamSize >> 32);
+                    hashBlock(block);
+                    break;
                 }
                 else{
+                    hashBlock(block);
                     uint32_t* paddingBlock = new uint32_t[BLOCK_INTS];
                     
                     for(int i  = 0; i < BLOCK_INTS; i++){
@@ -137,10 +140,8 @@ namespace SHA1{
 
         while(!lastBlock){
 
-
-            
-            
             size_t bytesRead = (streamSize + BLOCK_BYTES <= size)? BLOCK_BYTES : size - streamSize;
+            
             uint8_t* tmp = (uint8_t*)block;
 
             for(int i = 0; i < bytesRead; i++){
@@ -167,6 +168,7 @@ namespace SHA1{
                     streamSize *= 8; //to get number of bits in data
                     block[BLOCK_INTS -1] = (uint32_t)streamSize;
                     block[BLOCK_INTS -2] = (uint64_t)(streamSize >> 32);
+                    
                     hashBlock(block);
                     break;
                 }
