@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <iostream>
+#include <stdint.h>
 
 namespace SHA1{
     const size_t BLOCK_INTS = 16;  // number of 32bit integers per SHA1 block
